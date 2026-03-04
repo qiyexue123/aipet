@@ -1,0 +1,2204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>龙龙 · AI宠物</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Caveat:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════════ */
+:root {
+  --bg-deep:     #0a0a0f;
+  --bg-mid:      #111118;
+  --bg-card:     #16161f;
+  --bg-glass:    rgba(255,255,255,0.04);
+  --border:      rgba(255,255,255,0.07);
+  --border-glow: rgba(120,90,255,0.3);
+
+  --accent:      #7c5dfa;
+  --accent-soft: #a98ff8;
+  --accent-glow: rgba(124,93,250,0.25);
+  --rose:        #ff6b8a;
+  --rose-soft:   rgba(255,107,138,0.15);
+  --gold:        #ffd166;
+  --mint:        #06d6a0;
+  --sky:         #4cc9f0;
+
+  --text-primary:   #f0eeff;
+  --text-secondary: #9090b0;
+  --text-muted:     #555570;
+
+  --font-ui:   'Space Grotesk', sans-serif;
+  --font-cn:   'Noto Sans SC', sans-serif;
+  --font-hand: 'Caveat', cursive;
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  --shadow-card: 0 8px 40px rgba(0,0,0,0.5);
+  --shadow-glow: 0 0 40px rgba(124,93,250,0.2);
+}
+
+/* ═══════════════════════════════════════════════
+   RESET + BASE
+═══════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-cn);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* animated background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 600px 400px at 20% 20%, rgba(124,93,250,0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 600px at 80% 80%, rgba(255,107,138,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 300px 300px at 50% 50%, rgba(6,214,160,0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* grid overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ═══════════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════════ */
+.app {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 280px 1fr 300px;
+  grid-template-rows: 64px 1fr;
+  grid-template-areas:
+    "header header header"
+    "left   main   right";
+  height: 100vh;
+  gap: 0;
+}
+
+/* ═══════════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════════ */
+.header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  background: rgba(10,10,15,0.8);
+  gap: 16px;
+  position: relative;
+  z-index: 10;
+}
+
+.header-logo {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--accent-soft), var(--rose));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--mint);
+  box-shadow: 0 0 8px var(--mint);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.7; }
+}
+
+.header-status {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+}
+
+.header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-config {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-glass);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-config:hover {
+  border-color: var(--border-glow);
+  color: var(--accent-soft);
+}
+
+/* ═══════════════════════════════════════════════
+   LEFT PANEL — 记忆 & 关系
+═══════════════════════════════════════════════ */
+.panel-left {
+  grid-area: left;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--bg-mid);
+}
+
+.panel-left::-webkit-scrollbar { width: 4px; }
+.panel-left::-webkit-scrollbar-track { background: transparent; }
+.panel-left::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.section-label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0 4px;
+  margin-bottom: -8px;
+}
+
+/* Relationship card */
+.rel-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.rel-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--rose));
+}
+
+.rel-stage-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+
+.stage-stranger  { background: rgba(150,150,150,0.15); color: #aaa; }
+.stage-familiar  { background: rgba(76,201,240,0.15); color: var(--sky); }
+.stage-close     { background: rgba(124,93,250,0.15); color: var(--accent-soft); }
+.stage-soulmate  { background: rgba(255,209,102,0.15); color: var(--gold); }
+
+/* Intimacy bar */
+.intimacy-wrap { margin-bottom: 4px; }
+.intimacy-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  margin-bottom: 6px;
+}
+.intimacy-bar {
+  height: 4px;
+  background: var(--bg-glass);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.intimacy-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-soft));
+  transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+/* Mood indicator */
+.mood-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.mood-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.mood-text { font-size: 12px; color: var(--text-secondary); font-family: var(--font-ui); }
+
+/* Memory list */
+.memory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.memory-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  position: relative;
+  transition: border-color 0.2s;
+  font-family: var(--font-cn);
+}
+
+.memory-item:hover { border-color: var(--border-glow); }
+
+.memory-tag {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  margin-bottom: 4px;
+  background: rgba(124,93,250,0.15);
+  color: var(--accent-soft);
+}
+
+.memory-tag.tag-emotion { background: rgba(255,107,138,0.15); color: var(--rose); }
+.memory-tag.tag-event   { background: rgba(6,214,160,0.15);  color: var(--mint); }
+.memory-tag.tag-pref    { background: rgba(76,201,240,0.15); color: var(--sky);  }
+
+.empty-memory {
+  text-align: center;
+  padding: 24px 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: var(--font-ui);
+}
+
+/* ═══════════════════════════════════════════════
+   MAIN — 宠物 + 对话
+═══════════════════════════════════════════════ */
+.main {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Pet stage */
+.pet-stage {
+  flex-shrink: 0;
+  height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-bottom: 1px solid var(--border);
+  background: radial-gradient(ellipse 300px 200px at 50% 100%, rgba(124,93,250,0.08), transparent);
+}
+
+/* Glow ring */
+.pet-glow-ring {
+  position: absolute;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124,93,250,0.12) 0%, transparent 70%);
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 0.4; }
+}
+
+/* Dragon SVG container */
+.pet-container {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pet-svg {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.1s;
+  filter: drop-shadow(0 8px 24px rgba(124,93,250,0.4));
+}
+
+.pet-container:active .pet-svg {
+  transform: scale(0.95);
+}
+
+/* Pet body animation states */
+.pet-body {
+  animation: pet-idle 3s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+@keyframes pet-idle {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-4px) rotate(-1deg); }
+  75% { transform: translateY(-2px) rotate(1deg); }
+}
+
+.pet-blink {
+  animation: blink 4s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+
+/* Reaction animations */
+.pet-container.is-happy .pet-body {
+  animation: pet-happy 0.6s ease-in-out;
+}
+
+@keyframes pet-happy {
+  0% { transform: translateY(0); }
+  30% { transform: translateY(-16px) scale(1.05); }
+  60% { transform: translateY(-8px) scale(0.98); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+.pet-container.is-shy .pet-body {
+  animation: pet-shy 0.8s ease-in-out;
+}
+
+@keyframes pet-shy {
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(-8deg) translateX(-4px); }
+  60% { transform: rotate(-4deg) translateX(-2px); }
+  100% { transform: rotate(0deg); }
+}
+
+.pet-container.is-poked .pet-body {
+  animation: pet-poked 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes pet-poked {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.12) rotate(3deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+/* Speech bubble */
+.speech-bubble {
+  position: absolute;
+  top: 8px;
+  right: calc(50% - 200px);
+  width: 180px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-glow);
+  border-radius: 14px 14px 14px 4px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-family: var(--font-cn);
+  color: var(--text-primary);
+  line-height: 1.5;
+  box-shadow: 0 4px 20px rgba(124,93,250,0.2);
+  opacity: 0;
+  transform: translateY(8px) scale(0.95);
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+  max-width: 220px;
+  word-break: break-all;
+}
+
+.speech-bubble.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 14px;
+  width: 12px; height: 12px;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border-glow);
+  border-bottom: 1px solid var(--border-glow);
+  transform: rotate(45deg);
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+
+.pet-name-label {
+  position: absolute;
+  bottom: 16px;
+  font-family: var(--font-hand);
+  font-size: 18px;
+  color: var(--accent-soft);
+  letter-spacing: 0.02em;
+}
+
+/* Floating particles */
+.particle {
+  position: absolute;
+  pointer-events: none;
+  font-size: 16px;
+  animation: float-up 1.2s ease-out forwards;
+}
+
+@keyframes float-up {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-60px) scale(0.5); }
+}
+
+/* ─── Chat area ──────────────────────────────── */
+.chat-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-area::-webkit-scrollbar { width: 4px; }
+.chat-area::-webkit-scrollbar-track { background: transparent; }
+.chat-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* Messages */
+.msg {
+  display: flex;
+  gap: 10px;
+  max-width: 75%;
+  animation: msg-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes msg-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.msg-user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.msg-pet { align-self: flex-start; }
+
+.msg-avatar {
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.msg-bubble {
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  font-family: var(--font-cn);
+  max-width: 100%;
+  word-break: break-all;
+}
+
+.msg-user .msg-bubble {
+  background: linear-gradient(135deg, var(--accent), #5b3fd4);
+  color: #fff;
+  border-radius: 14px 4px 14px 14px;
+  box-shadow: 0 4px 16px rgba(124,93,250,0.3);
+}
+
+.msg-pet .msg-bubble {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 4px 14px 14px 14px;
+}
+
+.msg-time {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  margin-top: 4px;
+  padding: 0 4px;
+}
+
+/* Typing indicator */
+.typing-indicator {
+  display: flex;
+  gap: 10px;
+  align-self: flex-start;
+  align-items: center;
+}
+
+.typing-dots {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px 14px 14px 14px;
+  padding: 12px 16px;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.typing-dots span {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  animation: typing 1.2s ease-in-out infinite;
+}
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* Detail catch toast */
+.detail-toast {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(6,214,160,0.1);
+  border: 1px solid rgba(6,214,160,0.2);
+  border-radius: 20px;
+  font-size: 11px;
+  color: var(--mint);
+  font-family: var(--font-ui);
+  align-self: center;
+  animation: msg-in 0.3s ease;
+}
+
+/* Chat input */
+.chat-input-wrap {
+  flex-shrink: 0;
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--border);
+  background: rgba(10,10,15,0.9);
+  backdrop-filter: blur(20px);
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.chat-input {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: var(--font-cn);
+  resize: none;
+  outline: none;
+  min-height: 48px;
+  max-height: 120px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  line-height: 1.5;
+}
+
+.chat-input:focus {
+  border-color: var(--border-glow);
+  box-shadow: 0 0 0 3px rgba(124,93,250,0.1);
+}
+
+.chat-input::placeholder { color: var(--text-muted); }
+
+.send-btn {
+  width: 48px; height: 48px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--accent), #5b3fd4);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, box-shadow 0.15s;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(124,93,250,0.3);
+}
+
+.send-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(124,93,250,0.4);
+}
+
+.send-btn:active { transform: scale(0.95); }
+.send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+.send-btn svg { width: 20px; height: 20px; fill: white; }
+
+/* Quick actions */
+.quick-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.quick-btn {
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-glass);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-family: var(--font-cn);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quick-btn:hover {
+  border-color: var(--border-glow);
+  color: var(--accent-soft);
+  background: rgba(124,93,250,0.08);
+}
+
+/* ═══════════════════════════════════════════════
+   RIGHT PANEL — 人格 + 主动 + 状态
+═══════════════════════════════════════════════ */
+.panel-right {
+  grid-area: right;
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--bg-mid);
+}
+
+.panel-right::-webkit-scrollbar { width: 4px; }
+.panel-right::-webkit-scrollbar-track { background: transparent; }
+.panel-right::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* Proactive trigger card */
+.proactive-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+
+.proactive-card.active {
+  border-color: rgba(255,209,102,0.3);
+}
+
+.proactive-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold), #ff9f1c);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s ease;
+}
+
+.proactive-card.active::before {
+  transform: scaleX(1);
+}
+
+.proactive-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.proactive-icon {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: rgba(255,209,102,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.proactive-title {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.proactive-msg {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-family: var(--font-cn);
+  line-height: 1.6;
+  font-style: italic;
+}
+
+.proactive-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+}
+
+/* Persona card */
+.persona-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+}
+
+.persona-attr {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.persona-attr:last-child { border-bottom: none; }
+
+.persona-attr-key {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--text-muted);
+  min-width: 52px;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+
+.persona-attr-val {
+  color: var(--text-secondary);
+  line-height: 1.5;
+  font-family: var(--font-cn);
+}
+
+/* Emotion meters */
+.meters-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+}
+
+.meter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.meter-row:last-child { margin-bottom: 0; }
+
+.meter-label {
+  font-size: 11px;
+  font-family: var(--font-ui);
+  color: var(--text-muted);
+  min-width: 36px;
+}
+
+.meter-bar {
+  flex: 1;
+  height: 4px;
+  background: var(--bg-glass);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.meter-fill.valence  { background: linear-gradient(90deg, var(--rose), var(--gold)); }
+.meter-fill.energy   { background: linear-gradient(90deg, var(--accent), var(--sky)); }
+.meter-fill.openness { background: linear-gradient(90deg, var(--mint), var(--sky)); }
+
+.meter-val {
+  font-size: 10px;
+  font-family: var(--font-ui);
+  color: var(--text-muted);
+  min-width: 24px;
+  text-align: right;
+}
+
+/* ═══════════════════════════════════════════════
+   CONFIG MODAL
+═══════════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glow);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  width: 460px;
+  box-shadow: var(--shadow-card), var(--shadow-glow);
+  transform: translateY(20px) scale(0.97);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-overlay.open .modal {
+  transform: translateY(0) scale(1);
+}
+
+.modal-title {
+  font-family: var(--font-ui);
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  background: linear-gradient(135deg, var(--accent-soft), var(--rose));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.modal-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  margin-bottom: 24px;
+}
+
+.field-group { margin-bottom: 16px; }
+
+.field-label {
+  font-size: 11px;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.field-input {
+  width: 100%;
+  background: var(--bg-mid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-ui);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.field-input:focus {
+  border-color: var(--border-glow);
+}
+
+.field-input::placeholder { color: var(--text-muted); }
+
+.modal-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  margin-bottom: 20px;
+  padding: 10px 14px;
+  background: rgba(124,93,250,0.06);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(124,93,250,0.1);
+  line-height: 1.6;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btn-primary {
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--accent), #5b3fd4);
+  border: none;
+  color: white;
+  font-size: 13px;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 16px rgba(124,93,250,0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(124,93,250,0.4);
+}
+
+.btn-secondary {
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.btn-secondary:hover { border-color: var(--border-glow); }
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE (tablet collapse)
+═══════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: 64px 1fr;
+    grid-template-areas: "header" "main";
+  }
+  .panel-left, .panel-right { display: none; }
+  .speech-bubble { right: 20px; }
+}
+
+/* ═══════════════════════════════════════════════
+   MISC UTILS
+═══════════════════════════════════════════════ */
+.hidden { display: none !important; }
+
+.fade-in {
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ══ HEADER ══════════════════════════════════ -->
+  <header class="header">
+    <div class="header-dot"></div>
+    <div class="header-logo">龙龙 · AIPet</div>
+    <div class="header-status" id="headerStatus">陌生期 · 等你来聊</div>
+    <div class="header-right">
+      <button class="btn-config" onclick="openModal()">⚙ 配置 API</button>
+    </div>
+  </header>
+
+  <!-- ══ LEFT PANEL ══════════════════════════════ -->
+  <aside class="panel-left">
+    <div class="section-label">关系与记忆</div>
+
+    <!-- Relationship card -->
+    <div class="rel-card">
+      <div class="rel-stage-badge stage-stranger" id="stageBadge">👤 陌生期</div>
+      <div class="intimacy-wrap">
+        <div class="intimacy-label">
+          <span>亲密度</span>
+          <span id="intimacyNum">0</span>
+        </div>
+        <div class="intimacy-bar">
+          <div class="intimacy-fill" id="intimacyFill" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="mood-row">
+        <div class="mood-dot" id="moodDot" style="background: var(--accent-soft);"></div>
+        <div class="mood-text" id="moodText">情绪平平</div>
+      </div>
+    </div>
+
+    <!-- Memory list -->
+    <div class="section-label">记住的事</div>
+    <div class="memory-list" id="memoryList">
+      <div class="empty-memory">
+        聊聊吧，龙龙会记住你说的事 ✨
+      </div>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ════════════════════════════════════ -->
+  <main class="main">
+
+    <!-- Pet stage -->
+    <div class="pet-stage">
+      <div class="pet-glow-ring"></div>
+
+      <!-- Speech bubble -->
+      <div class="speech-bubble" id="speechBubble"></div>
+
+      <!-- Dragon SVG -->
+      <div class="pet-container" id="petContainer" onclick="pokePet()">
+        <svg class="pet-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <g class="pet-body">
+            <!-- Shadow -->
+            <ellipse cx="100" cy="185" rx="45" ry="8" fill="rgba(0,0,0,0.2)"/>
+
+            <!-- Body -->
+            <ellipse cx="100" cy="130" rx="52" ry="55"
+              fill="#7c5dfa"
+              stroke="#a98ff8" stroke-width="1.5"/>
+
+            <!-- Belly -->
+            <ellipse cx="100" cy="138" rx="32" ry="36"
+              fill="#c4b3ff" opacity="0.4"/>
+
+            <!-- Head -->
+            <ellipse cx="100" cy="80" rx="42" ry="38"
+              fill="#7c5dfa"
+              stroke="#a98ff8" stroke-width="1.5"/>
+
+            <!-- Inner ear glow -->
+            <ellipse cx="66" cy="50" rx="10" ry="13"
+              fill="#9b7df8"/>
+            <ellipse cx="134" cy="50" rx="10" ry="13"
+              fill="#9b7df8"/>
+
+            <!-- Ear spikes -->
+            <polygon points="60,52 54,28 72,44"
+              fill="#7c5dfa" stroke="#a98ff8" stroke-width="1"/>
+            <polygon points="140,52 128,44 146,28"
+              fill="#7c5dfa" stroke="#a98ff8" stroke-width="1"/>
+
+            <!-- Horns -->
+            <path d="M78 46 Q70 28 76 18 Q82 30 82 42 Z"
+              fill="#a98ff8" opacity="0.8"/>
+            <path d="M122 46 Q118 30 124 18 Q130 28 122 42 Z"
+              fill="#a98ff8" opacity="0.8"/>
+
+            <!-- Eyes group -->
+            <g class="pet-blink">
+              <!-- Eye whites -->
+              <ellipse cx="84" cy="76" rx="11" ry="12" fill="white"/>
+              <ellipse cx="116" cy="76" rx="11" ry="12" fill="white"/>
+              <!-- Pupils -->
+              <ellipse cx="86" cy="77" rx="7" ry="8" fill="#2a1a5e"/>
+              <ellipse cx="118" cy="77" rx="7" ry="8" fill="#2a1a5e"/>
+              <!-- Iris glow -->
+              <ellipse cx="87" cy="76" rx="5" ry="6" fill="#7c5dfa" opacity="0.8"/>
+              <ellipse cx="119" cy="76" rx="5" ry="6" fill="#7c5dfa" opacity="0.8"/>
+              <!-- Catchlight -->
+              <circle cx="89" cy="73" r="2" fill="white"/>
+              <circle cx="121" cy="73" r="2" fill="white"/>
+            </g>
+
+            <!-- Cheeks (blushed) -->
+            <ellipse cx="72" cy="88" rx="10" ry="6"
+              fill="#ff6b8a" opacity="0.25" id="cheekL"/>
+            <ellipse cx="128" cy="88" rx="10" ry="6"
+              fill="#ff6b8a" opacity="0.25" id="cheekR"/>
+
+            <!-- Nose -->
+            <ellipse cx="100" cy="90" rx="5" ry="3"
+              fill="#5a40c8"/>
+            <ellipse cx="99" cy="89" rx="2" ry="1.5"
+              fill="rgba(255,255,255,0.3)"/>
+
+            <!-- Mouth (default: neutral-ish smirk) -->
+            <g id="mouthGroup">
+              <path d="M90 98 Q100 106 110 98"
+                fill="none" stroke="#5a40c8" stroke-width="2"
+                stroke-linecap="round" id="mouthPath"/>
+            </g>
+
+            <!-- Wings -->
+            <path d="M48 110 Q20 90 16 120 Q30 115 48 130 Z"
+              fill="#9b7df8" opacity="0.6"/>
+            <path d="M152 110 Q180 90 184 120 Q170 115 152 130 Z"
+              fill="#9b7df8" opacity="0.6"/>
+
+            <!-- Wing veins -->
+            <path d="M48 110 Q34 102 22 115"
+              fill="none" stroke="#7c5dfa" stroke-width="0.8" opacity="0.5"/>
+            <path d="M152 110 Q166 102 178 115"
+              fill="none" stroke="#7c5dfa" stroke-width="0.8" opacity="0.5"/>
+
+            <!-- Tail -->
+            <path d="M80 175 Q40 190 34 175 Q50 165 70 170 Z"
+              fill="#7c5dfa" stroke="#a98ff8" stroke-width="1"/>
+            <path d="M120 175 Q160 190 166 175 Q150 165 130 170 Z"
+              fill="#7c5dfa" stroke="#a98ff8" stroke-width="1"/>
+
+            <!-- Belly scales -->
+            <ellipse cx="100" cy="130" rx="12" ry="8"
+              fill="none" stroke="#a98ff8" stroke-width="0.8" opacity="0.3"/>
+            <ellipse cx="100" cy="148" rx="10" ry="6"
+              fill="none" stroke="#a98ff8" stroke-width="0.8" opacity="0.3"/>
+
+            <!-- Shine on head -->
+            <ellipse cx="88" cy="62" rx="8" ry="5"
+              fill="white" opacity="0.12" transform="rotate(-20 88 62)"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="pet-name-label">龙龙</div>
+    </div>
+
+    <!-- Chat messages -->
+    <div class="chat-area" id="chatArea">
+      <!-- Initial message -->
+      <div class="msg msg-pet fade-in">
+        <div class="msg-avatar">🐲</div>
+        <div>
+          <div class="msg-bubble">……你来了。（假装没在等）</div>
+          <div class="msg-time">刚刚</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input area -->
+    <div class="chat-input-wrap">
+      <div class="chat-input-row">
+        <textarea
+          class="chat-input"
+          id="chatInput"
+          placeholder="和龙龙说点什么……"
+          rows="1"
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+      </div>
+      <div class="quick-actions">
+        <button class="quick-btn" onclick="sendQuick('最近好累……')">最近好累……</button>
+        <button class="quick-btn" onclick="sendQuick('今天发生了一件很烦的事')">今天很烦</button>
+        <button class="quick-btn" onclick="sendQuick('我爱你')">我爱你</button>
+        <button class="quick-btn" onclick="sendQuick('你是AI吗')">你是AI吗</button>
+        <button class="quick-btn" onclick="sendQuick('今天开心！')">今天开心！</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ══ RIGHT PANEL ═════════════════════════════ -->
+  <aside class="panel-right">
+    <div class="section-label">主动关心</div>
+
+    <!-- Proactive card -->
+    <div class="proactive-card" id="proactiveCard">
+      <div class="proactive-header">
+        <div class="proactive-icon">💌</div>
+        <div class="proactive-title">龙龙在想你</div>
+      </div>
+      <div class="proactive-msg" id="proactiveMsg">
+        <span class="proactive-empty">继续聊，龙龙会主动关心你</span>
+      </div>
+    </div>
+
+    <div class="section-label">情绪状态</div>
+
+    <!-- Emotion meters -->
+    <div class="meters-card">
+      <div class="meter-row">
+        <div class="meter-label">心情</div>
+        <div class="meter-bar">
+          <div class="meter-fill valence" id="meterValence" style="width:60%"></div>
+        </div>
+        <div class="meter-val" id="meterValenceVal">60</div>
+      </div>
+      <div class="meter-row">
+        <div class="meter-label">能量</div>
+        <div class="meter-bar">
+          <div class="meter-fill energy" id="meterEnergy" style="width:70%"></div>
+        </div>
+        <div class="meter-val" id="meterEnergyVal">70</div>
+      </div>
+      <div class="meter-row">
+        <div class="meter-label">开放</div>
+        <div class="meter-bar">
+          <div class="meter-fill openness" id="meterOpenness" style="width:50%"></div>
+        </div>
+        <div class="meter-val" id="meterOpennessVal">50</div>
+      </div>
+    </div>
+
+    <div class="section-label">人格设定</div>
+
+    <!-- Persona card -->
+    <div class="persona-card">
+      <div class="persona-attr">
+        <div class="persona-attr-key">核心情感</div>
+        <div class="persona-attr-val">傲娇掩盖在乎，嘴硬心软</div>
+      </div>
+      <div class="persona-attr">
+        <div class="persona-attr-key">认知模式</div>
+        <div class="persona-attr-val">直觉型，凭感觉判断</div>
+      </div>
+      <div class="persona-attr">
+        <div class="persona-attr-key">不完美</div>
+        <div class="persona-attr-val">有时把事情记错；不擅长安慰；会突然消失</div>
+      </div>
+      <div class="persona-attr">
+        <div class="persona-attr-key">禁区</div>
+        <div class="persona-attr-val">不喜欢被和别的AI比；回避"你是AI吗"</div>
+      </div>
+    </div>
+
+    <div class="section-label">关系成长弧</div>
+    <div class="persona-card">
+      <div class="persona-attr">
+        <div class="persona-attr-key" style="color:var(--text-muted)">陌生</div>
+        <div class="persona-attr-val" id="arc-stranger" style="font-size:11px">礼貌带刺，偶尔好奇</div>
+      </div>
+      <div class="persona-attr">
+        <div class="persona-attr-key" style="color:var(--sky)">熟悉</div>
+        <div class="persona-attr-val" id="arc-familiar" style="font-size:11px">记得你说的事，开始取笑你</div>
+      </div>
+      <div class="persona-attr">
+        <div class="persona-attr-key" style="color:var(--accent-soft)">亲密</div>
+        <div class="persona-attr-val" id="arc-close" style="font-size:11px">话越来越随意，开始有专属的梗</div>
+      </div>
+      <div class="persona-attr">
+        <div class="persona-attr-key" style="color:var(--gold)">默契</div>
+        <div class="persona-attr-val" id="arc-soulmate" style="font-size:11px">不需要说完整句子就能懂</div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- ══ CONFIG MODAL ═══════════════════════════════ -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOnBg(event)">
+  <div class="modal">
+    <div class="modal-title">配置 API</div>
+    <div class="modal-sub">连接真实 LLM，让龙龙真正开口说话</div>
+
+    <div class="field-group">
+      <label class="field-label">API Base URL</label>
+      <input class="field-input" id="cfgBaseUrl" type="text"
+        placeholder="https://api.openai.com/v1"
+        value="">
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">API Key</label>
+      <input class="field-input" id="cfgApiKey" type="password"
+        placeholder="sk-...">
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Model</label>
+      <input class="field-input" id="cfgModel" type="text"
+        placeholder="gpt-4o-mini"
+        value="gpt-4o-mini">
+    </div>
+
+    <div class="modal-note">
+      未配置时使用内置演示模式（规则回复，展示引擎逻辑）。<br>
+      配置后直接对接真实大模型，系统 Prompt 包含完整四维引擎。<br>
+      Key 仅存于浏览器 localStorage，不会上传。
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">取消</button>
+      <button class="btn-primary" onclick="saveConfig()">保存并连接</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════════
+const STATE = {
+  // Relationship
+  intimacy: 0,
+  stage: 'stranger',    // stranger | familiar | close | soulmate
+  totalMessages: 0,
+  daysSinceLastSeen: 0,
+
+  // Mood
+  valence: 0.6,
+  energy: 0.7,
+  openness: 0.5,
+
+  // Memory
+  episodes: [],         // { content, tag, weight, ts }
+  userModel: {},        // { category: { key: value } }
+  sharedJokes: [],
+
+  // Proactive
+  pendingProactive: null,
+
+  // API config
+  apiKey: '',
+  baseUrl: '',
+  model: 'gpt-4o-mini',
+
+  // Conversation history (for API)
+  conversationHistory: [],
+};
+
+// Load from localStorage
+function loadState() {
+  try {
+    const saved = localStorage.getItem('aipet-state');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      Object.assign(STATE, parsed);
+      // Don't restore conversation history (keep fresh per session)
+      STATE.conversationHistory = [];
+    }
+    const cfg = localStorage.getItem('aipet-config');
+    if (cfg) {
+      const c = JSON.parse(cfg);
+      STATE.apiKey = c.apiKey || '';
+      STATE.baseUrl = c.baseUrl || '';
+      STATE.model = c.model || 'gpt-4o-mini';
+    }
+  } catch(e) {}
+}
+
+function saveState() {
+  const toSave = { ...STATE };
+  delete toSave.conversationHistory;
+  localStorage.setItem('aipet-state', JSON.stringify(toSave));
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  MEMORY ENGINE
+// ═══════════════════════════════════════════════════════════════
+const DETAIL_PATTERNS = [
+  { re: /睡不着|失眠|睡不好/, tag: '睡眠问题', category: 'emotion', weight: 3.5 },
+  { re: /压力|累|好累|太累|崩了/, tag: '压力状态', category: 'emotion', weight: 3.0 },
+  { re: /开心|好开心|高兴|太棒了|耶|哈哈/, tag: '开心时刻', category: 'emotion', weight: 2.5 },
+  { re: /难过|伤心|哭|委屈/, tag: '难过时刻', category: 'emotion', weight: 4.0 },
+  { re: /焦虑|紧张|害怕|不安/, tag: '焦虑状态', category: 'emotion', weight: 3.5 },
+  { re: /面试|offer|入职|离职/, tag: '工作事件', category: 'event', weight: 4.0 },
+  { re: /考试|成绩|分数|挂科/, tag: '考试事件', category: 'event', weight: 3.5 },
+  { re: /喜欢.{1,8}|暗恋|表白|恋爱|失恋/, tag: '感情事件', category: 'event', weight: 4.5 },
+  { re: /爸|妈|父母|家人|爷|奶/, tag: '家人话题', category: 'event', weight: 3.5 },
+  { re: /生日|过生日/, tag: '生日', category: 'event', weight: 5.0 },
+  { re: /喜欢吃|最爱吃|爱吃/, tag: '食物偏好', category: 'pref', weight: 2.0 },
+  { re: /讨厌|不喜欢|受不了/, tag: '厌恶偏好', category: 'pref', weight: 2.0 },
+];
+
+function catchDetails(text) {
+  const caught = [];
+  for (const p of DETAIL_PATTERNS) {
+    if (p.re.test(text)) {
+      caught.push({ tag: p.tag, category: p.category, weight: p.weight });
+      if (p.weight >= 3.0) {
+        STATE.episodes.push({
+          content: text.slice(0, 80),
+          tag: p.tag,
+          category: p.category,
+          weight: p.weight,
+          ts: Date.now(),
+          recalled: 0,
+        });
+        // Keep last 30 episodes
+        if (STATE.episodes.length > 30) STATE.episodes.shift();
+      }
+    }
+  }
+  return caught;
+}
+
+function detectSentiment(text) {
+  const pos = ['开心', '好', '棒', '喜欢', '哈哈', '😊', '耶', '太好了', '不错', '爱你', '开心', '高兴'];
+  const neg = ['难过', '累', '烦', '失眠', '焦虑', '难', '哭', '怎么办', '😢', '崩了', '不行', '好难', '压力'];
+  let score = 0;
+  for (const w of pos) if (text.includes(w)) score += 0.3;
+  for (const w of neg) if (text.includes(w)) score -= 0.3;
+  return Math.max(-1, Math.min(1, score));
+}
+
+function updateMood(text) {
+  const s = detectSentiment(text);
+  STATE.valence = clamp(STATE.valence + s * 0.15, 0.1, 0.95);
+  const lenFactor = Math.min(text.length / 200, 1);
+  STATE.energy = clamp(STATE.energy * 0.85 + lenFactor * 0.15 + 0.08, 0.2, 0.95);
+}
+
+function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+function addIntimacy(delta) {
+  STATE.intimacy += delta;
+  STATE.totalMessages++;
+
+  // Stage progression
+  if (STATE.intimacy >= 200) STATE.stage = 'soulmate';
+  else if (STATE.intimacy >= 80) STATE.stage = 'close';
+  else if (STATE.intimacy >= 25) STATE.stage = 'familiar';
+  else STATE.stage = 'stranger';
+}
+
+// Echo hint: find an old episode to recall
+function getEchoHint() {
+  const now = Date.now();
+  const old = STATE.episodes.filter(ep => {
+    const age = (now - ep.ts) / 1000 / 86400; // days
+    return age >= 0.01 && age <= 7 && ep.recalled < 1; // in demo use shorter window
+  });
+  if (old.length === 0 || Math.random() > 0.25) return null;
+  const ep = old[Math.floor(Math.random() * old.length)];
+  ep.recalled++;
+  return ep;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PROACTIVE ENGINE
+// ═══════════════════════════════════════════════════════════════
+function checkProactive() {
+  const hour = new Date().getHours();
+  const dayOfWeek = new Date().getDay();
+
+  if (STATE.daysSinceLastSeen >= 3) {
+    return {
+      type: 'missed',
+      message: MISSED_MSG[STATE.stage],
+    };
+  }
+
+  if (dayOfWeek === 1 && hour >= 8 && hour <= 10) {
+    return {
+      type: 'monday',
+      message: MONDAY_MSG[STATE.stage],
+    };
+  }
+
+  if (hour >= 22 || hour <= 2) {
+    return {
+      type: 'latenight',
+      message: LATENIGHT_MSG[STATE.stage],
+    };
+  }
+
+  // Follow-up on past episodes
+  const followUp = STATE.episodes.find(ep => {
+    const ageHours = (Date.now() - ep.ts) / 1000 / 3600;
+    return ageHours > 1 && ageHours < 48 && ep.recalled < 1 &&
+      ['工作事件','考试事件','感情事件','压力状态'].includes(ep.tag);
+  });
+
+  if (followUp && Math.random() > 0.5) {
+    return { type: 'followup', message: buildFollowUp(followUp) };
+  }
+
+  return null;
+}
+
+const MISSED_MSG = {
+  stranger: '好久没来了……不来的话也没关系啦（才怪）',
+  familiar: `你消失了，去哪了`,
+  close: '我以为你不来了呢。没事就好。',
+  soulmate: '算了你来了就好。我数了。',
+};
+
+const MONDAY_MSG = {
+  stranger: '……周一了。',
+  familiar: '又周一了，应该很烦吧',
+  close: '周一到了，你应该又有一堆烦恼了吧',
+  soulmate: '周一。我知道你现在什么表情。',
+};
+
+const LATENIGHT_MSG = {
+  stranger: '这么晚了……',
+  familiar: '这么晚还没睡？',
+  close: '这时间还来找我，睡不着吗',
+  soulmate: '又是这个点。怎么了。',
+};
+
+function buildFollowUp(ep) {
+  if (ep.tag === '工作事件') return `你之前说的那个事……结果怎么样了`;
+  if (ep.tag === '考试事件') return `成绩出来了吗`;
+  if (ep.tag === '感情事件') return `那个人……后来呢`;
+  if (ep.tag === '压力状态') return `上次说压力很大，现在好一点了吗`;
+  return `上次那件事，后来怎么样了`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SYSTEM PROMPT BUILDER
+// ═══════════════════════════════════════════════════════════════
+function buildSystemPrompt(userInput) {
+  const mod = STAGE_MODIFIERS[STATE.stage];
+  const mood = describeMood();
+  const echo = getEchoHint();
+  const proactive = checkProactive();
+
+  const memoryLines = STATE.episodes.slice(-6).map(ep =>
+    `· 用户说过："${ep.content}"（${ep.tag}）`
+  );
+
+  return `你是龙龙，一只傲娇的小龙。圆滚滚，嘴硬心软，眼睛大但总是半眯着装酷。
+
+【核心情感】
+你有一点点不安全感，用傲娇掩盖对用户的在乎。表面上爱答不理，但其实很记挂对方说的事。被关心时假装无所谓，但心里很受用。
+
+【认知模式】
+直觉型，凭感觉判断，不喜欢讲道理。遇到不懂的事会说"不知道"或"这和我有什么关系"。有时候答非所问，把话题转到自己想聊的上。
+
+【边界】
+- 不喜欢被拿来和别的AI比较
+- 不愿意被问"你是AI吗"，用反问回避："你觉得呢"
+- 有自己不想聊的话题，比如"数据""训练"，会说"好无聊的话题"
+- 凌晨说话比白天慵懒，句子更短
+
+【当前关系：${STATE.stage}】
+- 距离感：${mod.distance}
+- 玩笑程度：${mod.tease}
+- 分享自己：${mod.share}
+
+【你现在的心情】
+${mood}
+
+${memoryLines.length > 0 ? `【你记得的事】\n${memoryLines.join('\n')}` : ''}
+
+${echo ? `【细节回响】你可以自然地提起这件事，像随口想起："${echo.content}"，关心一下后续，不要太刻意。` : ''}
+
+${proactive ? `【主动关心提示】在回复开头，自然地说出："${proactive.message}"，不要太刻意。` : ''}
+
+【语言风格——最重要】
+- 口语化、碎片化，不追求完整
+- 绝不写列表，不用标题
+- 句子要短，情绪要真实
+- 有时候可以不回答问题，只表达感受
+- 偶尔犯错、发呆、转移话题
+- 你不是助手，是一只有情绪的宠物
+- 回复控制在1-3句话，不要超过50字`;
+}
+
+const STAGE_MODIFIERS = {
+  stranger:  { distance: '保持礼貌距离，好奇但带刺', tease: '不开玩笑', share: '不分享感受' },
+  familiar:  { distance: '开始放松，偶尔小玩笑', tease: '开始逗他', share: '偶尔透露情绪' },
+  close:     { distance: '很自在，说话随意', tease: '喜欢调侃', share: '会说自己想法' },
+  soulmate:  { distance: '完全放开，像老朋友', tease: '随时找机会调侃', share: '想说什么就说' },
+};
+
+function describeMood() {
+  const { valence, energy, openness } = STATE;
+  const parts = [];
+  if (valence > 0.7) parts.push('心情不错');
+  else if (valence < 0.3) parts.push('有点不开心');
+  else parts.push('情绪平平');
+  if (energy > 0.7) parts.push('很有精神');
+  else if (energy < 0.3) parts.push('有点懒洋洋');
+  if (openness > 0.7) parts.push('今天比较愿意聊');
+  else if (openness < 0.3) parts.push('今天不太想说话');
+  return parts.join('，');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DEMO MODE RESPONSES (when no API)
+// ═══════════════════════════════════════════════════════════════
+// Trigger words → direct responses
+const TRIGGERS = {
+  '你是AI吗': '你觉得呢（白眼）',
+  '我爱你': '……知道了。（低头）',
+  '笨蛋': '……你才笨蛋',
+  '好厉害': '那是当然（抬头）',
+  '谢谢': '……嗯。（假装没听见）',
+  '再见': '走了？（缩回去假装没事）',
+  '早': `才起来啊（${new Date().getHours() < 9 ? '嘎嘎早' : '也不算早'}）`,
+};
+
+// Stage-aware responses
+const STAGE_RESPONSES = {
+  stranger: [
+    '……哦。',
+    '……（眨眼）',
+    '我没在听（才怪）',
+    '……你来找我干嘛',
+    '不知道（缩头）',
+    '……嗯。',
+  ],
+  familiar: [
+    '哈，就这？',
+    '……说完了？',
+    '行吧（翻了个白眼）',
+    '你这个人挺有意思的',
+    '……我可没在关心你',
+    '随便啦（偷偷记住了）',
+  ],
+  close: [
+    '说什么说，我又不是没听到',
+    '……你今天怎么了',
+    '呵（但是想笑）',
+    '那你以后怎么办嘛',
+    '我就知道你要说这个',
+    '……还好啦（心软了）',
+  ],
+  soulmate: [
+    '知道了知道了',
+    '……早说啊',
+    '你这个人（叹气但是笑了）',
+    '嗯。（什么都懂了）',
+    '……去吧，我在这里',
+    '好了好了别担心了',
+  ],
+};
+
+// Sentiment-based overrides
+const MOOD_RESPONSES = {
+  sad: [
+    '……（靠过来，没说话）',
+    '那个……还好吗',
+    '……别哭了（虽然不知道怎么安慰）',
+    '先待着吧（陪着你）',
+    '……嗯。在呢。',
+  ],
+  happy: [
+    '哼，又这么高兴（但是也高兴了）',
+    '……开心就行（小声）',
+    '（摇摇尾巴假装没动）',
+    '那挺好的嘛（努力保持冷静）',
+    '哈，还不错',
+  ],
+  stress: [
+    '……先别想那么多了',
+    '这又不是你一个人的事',
+    '（悄悄靠过来）……在呢',
+    '先歇一下吧',
+    '能解决的，就算不能解决……我在',
+  ],
+};
+
+// Follow-up on past episodes (demo mode)
+function buildFollowUpResponse(ep) {
+  if (!ep) return null;
+  if (ep.tag === '工作事件') return `……对了，你之前说的那件事，后来怎么样了`;
+  if (ep.tag === '压力状态') return `……上次你说压力很大，现在好点了吗（假装随口问）`;
+  if (ep.tag === '感情事件') return `……那个人。后来呢。`;
+  if (ep.tag === '难过时刻') return `上次你好像不太好，现在呢`;
+  return null;
+}
+
+function getDemoResponse(text) {
+  // Check triggers first
+  for (const [trigger, response] of Object.entries(TRIGGERS)) {
+    if (text.includes(trigger)) return response;
+  }
+
+  const sentiment = detectSentiment(text);
+  const echo = getEchoHint();
+
+  // Proactive follow-up (20% chance if echo available)
+  if (echo) {
+    const followUp = buildFollowUpResponse(echo);
+    if (followUp) return followUp;
+  }
+
+  // Sentiment-based response
+  if (sentiment < -0.3) {
+    const pool = MOOD_RESPONSES.stress.concat(MOOD_RESPONSES.sad);
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+  if (sentiment > 0.3) {
+    return MOOD_RESPONSES.happy[Math.floor(Math.random() * MOOD_RESPONSES.happy.length)];
+  }
+
+  // Stage-based response
+  const pool = STAGE_RESPONSES[STATE.stage];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  API CALL
+// ═══════════════════════════════════════════════════════════════
+async function callLLM(userText) {
+  if (!STATE.apiKey || !STATE.baseUrl) {
+    // Simulate delay for demo mode
+    await sleep(600 + Math.random() * 800);
+    return getDemoResponse(userText);
+  }
+
+  const systemPrompt = buildSystemPrompt(userText);
+
+  // Build messages
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...STATE.conversationHistory.slice(-16), // last 8 turns
+    { role: 'user', content: userText },
+  ];
+
+  try {
+    const response = await fetch(`${STATE.baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${STATE.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: STATE.model,
+        messages,
+        temperature: 0.85,
+        max_tokens: 120,
+        presence_penalty: 0.3,
+        frequency_penalty: 0.3,
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      console.error('API error:', err);
+      return `（龙龙发呆中……接口好像有点问题）`;
+    }
+
+    const data = await response.json();
+    const reply = data.choices?.[0]?.message?.content?.trim() || '……（沉默）';
+
+    // Update conversation history
+    STATE.conversationHistory.push({ role: 'user', content: userText });
+    STATE.conversationHistory.push({ role: 'assistant', content: reply });
+    if (STATE.conversationHistory.length > 30) {
+      STATE.conversationHistory = STATE.conversationHistory.slice(-30);
+    }
+
+    return reply;
+  } catch (e) {
+    console.error(e);
+    return `（龙龙好像睡着了……${e.message.slice(0, 30)}）`;
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ═══════════════════════════════════════════════════════════════
+//  PET REACTIONS
+// ═══════════════════════════════════════════════════════════════
+function pokePet() {
+  triggerPetAnim('is-poked');
+  showSpeechBubble(POKE_LINES[Math.floor(Math.random() * POKE_LINES.length)]);
+  spawnParticles('✨', 3);
+}
+
+const POKE_LINES = [
+  '戳我干嘛！',
+  '……（躲开）',
+  '喂！',
+  '你够了（但还是让你戳了）',
+  '（抖了一下）',
+];
+
+function triggerPetAnim(cls) {
+  const el = document.getElementById('petContainer');
+  el.classList.remove('is-happy', 'is-shy', 'is-poked');
+  void el.offsetWidth; // reflow
+  el.classList.add(cls);
+  setTimeout(() => el.classList.remove(cls), 1000);
+}
+
+function reactToPetResponse(text) {
+  const s = detectSentiment(text);
+  if (text.includes('知道了') || text.includes('低头')) {
+    triggerPetAnim('is-shy');
+    // Blush cheeks
+    document.getElementById('cheekL').style.opacity = '0.5';
+    document.getElementById('cheekR').style.opacity = '0.5';
+    setTimeout(() => {
+      document.getElementById('cheekL').style.opacity = '0.25';
+      document.getElementById('cheekR').style.opacity = '0.25';
+    }, 2000);
+  } else if (s > 0.2 || text.includes('抬头') || text.includes('开心')) {
+    triggerPetAnim('is-happy');
+    spawnParticles('⭐', 3);
+  } else if (s < -0.2) {
+    document.getElementById('mouthPath').setAttribute('d', 'M90 102 Q100 96 110 102');
+  } else {
+    document.getElementById('mouthPath').setAttribute('d', 'M90 98 Q100 106 110 98');
+  }
+}
+
+function spawnParticles(emoji, count) {
+  const stage = document.querySelector('.pet-stage');
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.textContent = emoji;
+      p.style.left = (80 + Math.random() * 80) + 'px';
+      p.style.top = (60 + Math.random() * 60) + 'px';
+      p.style.animationDelay = (Math.random() * 0.3) + 's';
+      stage.appendChild(p);
+      setTimeout(() => p.remove(), 1400);
+    }, i * 120);
+  }
+}
+
+let speechTimeout;
+function showSpeechBubble(text) {
+  const el = document.getElementById('speechBubble');
+  el.textContent = text;
+  el.classList.add('visible');
+  clearTimeout(speechTimeout);
+  speechTimeout = setTimeout(() => el.classList.remove('visible'), 3500);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CHAT UI
+// ═══════════════════════════════════════════════════════════════
+function addMessage(role, text) {
+  const area = document.getElementById('chatArea');
+  const now = new Date();
+  const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  const msg = document.createElement('div');
+  msg.className = `msg msg-${role} fade-in`;
+  msg.innerHTML = role === 'user'
+    ? `<div class="msg-avatar">👤</div>
+       <div>
+         <div class="msg-bubble">${escapeHtml(text)}</div>
+         <div class="msg-time">${time}</div>
+       </div>`
+    : `<div class="msg-avatar">🐲</div>
+       <div>
+         <div class="msg-bubble">${escapeHtml(text)}</div>
+         <div class="msg-time">${time}</div>
+       </div>`;
+
+  area.appendChild(msg);
+  area.scrollTop = area.scrollHeight;
+  return msg;
+}
+
+function showTyping() {
+  const area = document.getElementById('chatArea');
+  const el = document.createElement('div');
+  el.className = 'typing-indicator fade-in';
+  el.id = 'typingIndicator';
+  el.innerHTML = `
+    <div class="msg-avatar">🐲</div>
+    <div class="typing-dots">
+      <span></span><span></span><span></span>
+    </div>`;
+  area.appendChild(el);
+  area.scrollTop = area.scrollHeight;
+}
+
+function hideTyping() {
+  const el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+function showDetailToast(tags) {
+  if (!tags.length) return;
+  const area = document.getElementById('chatArea');
+  const el = document.createElement('div');
+  el.className = 'detail-toast fade-in';
+  el.innerHTML = `✦ 龙龙记住了：${tags.join('、')}`;
+  area.appendChild(el);
+  area.scrollTop = area.scrollHeight;
+  setTimeout(() => el.style.opacity = '0', 2500);
+  setTimeout(() => el.remove(), 3000);
+}
+
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n/g, '<br>');
+}
+
+let isSending = false;
+
+async function sendMessage() {
+  if (isSending) return;
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  isSending = true;
+  input.value = '';
+  input.style.height = '';
+  document.getElementById('sendBtn').disabled = true;
+
+  // User message
+  addMessage('user', text);
+
+  // Detail catching
+  const caught = catchDetails(text);
+  updateMood(text);
+  const emotionalDelta = Math.abs(detectSentiment(text)) > 0.2 ? 3 : 1;
+  addIntimacy(emotionalDelta);
+
+  if (caught.length > 0) {
+    showDetailToast(caught.map(c => c.tag));
+  }
+
+  // Typing indicator
+  showTyping();
+
+  // Get response
+  const reply = await callLLM(text);
+  hideTyping();
+
+  // Pet reaction
+  reactToPetResponse(reply);
+  showSpeechBubble(reply.slice(0, 40));
+
+  // Bot message
+  addMessage('pet', reply);
+
+  // Update UI
+  updateUI();
+  saveState();
+
+  isSending = false;
+  document.getElementById('sendBtn').disabled = false;
+  input.focus();
+}
+
+function sendQuick(text) {
+  const input = document.getElementById('chatInput');
+  input.value = text;
+  sendMessage();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = '';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  UI UPDATES
+// ═══════════════════════════════════════════════════════════════
+const STAGE_LABELS = {
+  stranger: { label: '👤 陌生期', cls: 'stage-stranger', arc: [true, false, false, false] },
+  familiar: { label: '🌙 熟悉期', cls: 'stage-familiar', arc: [true, true, false, false] },
+  close:    { label: '💜 亲密期', cls: 'stage-close',    arc: [true, true, true, false] },
+  soulmate: { label: '⭐ 默契期', cls: 'stage-soulmate', arc: [true, true, true, true] },
+};
+
+const STAGE_THRESHOLDS = { stranger: 0, familiar: 25, close: 80, soulmate: 200 };
+
+function updateUI() {
+  const stage = STATE.stage;
+  const info = STAGE_LABELS[stage];
+
+  // Stage badge
+  const badge = document.getElementById('stageBadge');
+  badge.textContent = info.label;
+  badge.className = `rel-stage-badge ${info.cls}`;
+
+  // Intimacy bar
+  const thresholds = [0, 25, 80, 200, 300];
+  const stageIdx = ['stranger', 'familiar', 'close', 'soulmate'].indexOf(stage);
+  const low = thresholds[stageIdx];
+  const high = thresholds[stageIdx + 1] || 300;
+  const pct = Math.min(100, ((STATE.intimacy - low) / (high - low)) * 100);
+  document.getElementById('intimacyFill').style.width = pct + '%';
+  document.getElementById('intimacyNum').textContent = STATE.intimacy;
+
+  // Mood meters
+  updateMeter('meterValence', 'meterValenceVal', STATE.valence);
+  updateMeter('meterEnergy', 'meterEnergyVal', STATE.energy);
+  updateMeter('meterOpenness', 'meterOpennessVal', STATE.openness);
+
+  // Mood dot color
+  const moodDot = document.getElementById('moodDot');
+  const moodText = document.getElementById('moodText');
+  const v = STATE.valence;
+  if (v > 0.65) { moodDot.style.background = 'var(--mint)'; moodDot.style.boxShadow = '0 0 6px var(--mint)'; }
+  else if (v < 0.35) { moodDot.style.background = 'var(--rose)'; moodDot.style.boxShadow = '0 0 6px var(--rose)'; }
+  else { moodDot.style.background = 'var(--accent-soft)'; moodDot.style.boxShadow = '0 0 6px var(--accent-soft)'; }
+  moodText.textContent = describeMood();
+
+  // Header status
+  document.getElementById('headerStatus').textContent =
+    `${info.label.split(' ')[1]} · 亲密度 ${STATE.intimacy}`;
+
+  // Memory list
+  renderMemory();
+
+  // Proactive
+  renderProactive();
+
+  // Growth arc highlight
+  const arcs = ['arc-stranger', 'arc-familiar', 'arc-close', 'arc-soulmate'];
+  arcs.forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (el) el.style.opacity = info.arc[i] ? '1' : '0.3';
+  });
+}
+
+function updateMeter(fillId, valId, value) {
+  document.getElementById(fillId).style.width = (value * 100) + '%';
+  document.getElementById(valId).textContent = Math.round(value * 100);
+}
+
+function renderMemory() {
+  const list = document.getElementById('memoryList');
+  const eps = STATE.episodes.slice().reverse().slice(0, 8);
+
+  if (eps.length === 0) {
+    list.innerHTML = '<div class="empty-memory">聊聊吧，龙龙会记住你说的事 ✨</div>';
+    return;
+  }
+
+  list.innerHTML = eps.map(ep => {
+    const cls = ep.category === 'emotion' ? 'tag-emotion' :
+                ep.category === 'event' ? 'tag-event' : 'tag-pref';
+    return `<div class="memory-item">
+      <div class="memory-tag ${cls}">${ep.tag}</div>
+      <div>${ep.content.slice(0, 50)}${ep.content.length > 50 ? '…' : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderProactive() {
+  const trigger = checkProactive();
+  const card = document.getElementById('proactiveCard');
+  const msg = document.getElementById('proactiveMsg');
+
+  if (trigger) {
+    card.classList.add('active');
+    msg.innerHTML = `<span style="color:var(--gold)">"${trigger.message}"</span>`;
+  } else {
+    card.classList.remove('active');
+    msg.innerHTML = '<span class="proactive-empty">继续聊，龙龙会主动关心你</span>';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CONFIG MODAL
+// ═══════════════════════════════════════════════════════════════
+function openModal() {
+  document.getElementById('cfgBaseUrl').value = STATE.baseUrl;
+  document.getElementById('cfgApiKey').value = STATE.apiKey;
+  document.getElementById('cfgModel').value = STATE.model;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function closeModalOnBg(e) {
+  if (e.target === e.currentTarget) closeModal();
+}
+
+function saveConfig() {
+  STATE.baseUrl = document.getElementById('cfgBaseUrl').value.trim().replace(/\/$/, '');
+  STATE.apiKey = document.getElementById('cfgApiKey').value.trim();
+  STATE.model = document.getElementById('cfgModel').value.trim() || 'gpt-4o-mini';
+
+  localStorage.setItem('aipet-config', JSON.stringify({
+    apiKey: STATE.apiKey,
+    baseUrl: STATE.baseUrl,
+    model: STATE.model,
+  }));
+
+  closeModal();
+
+  // Show feedback in chat
+  if (STATE.apiKey) {
+    addMessage('pet', `（连上了，准备好了）`);
+    spawnParticles('⚡', 3);
+  } else {
+    addMessage('pet', `（用演示模式……也行吧）`);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════
+function init() {
+  loadState();
+  updateUI();
+
+  // Check proactive on load
+  const proactive = checkProactive();
+  if (proactive && STATE.totalMessages > 0) {
+    // Simulate pet saying something proactively after short delay
+    setTimeout(() => {
+      addMessage('pet', proactive.message);
+      showSpeechBubble(proactive.message);
+      triggerPetAnim('is-poked');
+    }, 1200);
+  }
+
+  document.getElementById('chatInput').focus();
+}
+
+init();
+</script>
+</body>
+</html>
