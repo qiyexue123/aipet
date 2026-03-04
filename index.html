@@ -80,55 +80,83 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: calc(var(--safe-top) + 24px) 24px 16px;
+  padding: calc(var(--safe-top) + 20px) 20px 12px;
   z-index: 20;
   position: relative;
 }
 
 .header-brand {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.header-icon {
-  width: 40px; height: 40px;
-  border-radius: 16px;
-  display: flex; align-items: center; justify-content: center;
-}
-.header-icon .material-symbols-outlined {
-  font-size: 20px;
-  color: var(--primary);
-  font-variation-settings: 'wght' 200, 'FILL' 0;
+.header-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .header-title {
-  font-size: 13px;
+  font-size: 18px;
   font-weight: 600;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.05em;
   color: var(--soft-grey);
-  line-height: 1.2;
+  line-height: 1;
+}
+
+.header-edit-btn {
+  width: 22px; height: 22px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  background: rgba(165,180,252,0.15);
+  border: 1px solid rgba(165,180,252,0.25);
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.header-edit-btn:active { transform: scale(0.88); background: rgba(165,180,252,0.3); }
+.header-edit-btn .material-symbols-outlined {
+  font-size: 12px;
+  color: var(--primary-d);
+  font-variation-settings: 'wght' 400;
 }
 
 .header-sub {
-  font-size: 9px;
-  color: var(--text-mute);
-  letter-spacing: 0.15em;
+  font-size: 10px;
+  color: rgba(90,96,127,0.45);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  margin-top: 1px;
+  font-weight: 400;
 }
 
-/* ═══ RIGHT NAV CLUSTER (game HUD style) ═══════ */
+/* Name edit inline input */
+.header-name-input {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--soft-grey);
+  font-family: inherit;
+  border: none;
+  border-bottom: 1.5px solid var(--primary);
+  background: transparent;
+  outline: none;
+  width: 110px;
+  padding: 0 2px 1px;
+  line-height: 1;
+}
+
+/* ═══ RIGHT NAV CLUSTER (game HUD — horizontal) ═ */
 .header-nav {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-direction: row;
+  gap: 7px;
   align-items: center;
 }
 
 .nav-btn {
-  width: 42px; height: 42px;
-  border-radius: 14px;
+  width: 38px; height: 38px;
+  border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   transition: transform 0.18s, box-shadow 0.18s;
@@ -137,11 +165,11 @@ html, body {
   -webkit-backdrop-filter: blur(15px);
   background: rgba(255,255,255,0.6);
   border: 1px solid rgba(255,255,255,0.75);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
-.nav-btn:active { transform: scale(0.88); box-shadow: 0 1px 6px rgba(0,0,0,0.04); }
+.nav-btn:active { transform: scale(0.88); }
 .nav-btn .material-symbols-outlined {
-  font-size: 20px;
+  font-size: 18px;
   color: #5A607F;
   font-variation-settings: 'wght' 400, 'FILL' 0;
   transition: color 0.15s;
@@ -806,15 +834,16 @@ html, body {
   <!-- HEADER -->
   <header class="header">
     <div class="header-brand">
-      <div class="header-icon glass">
-        <span class="material-symbols-outlined">auto_awesome</span>
+      <div class="header-name-row">
+        <div class="header-title" id="petNameDisplay">晶晶云</div>
+        <div class="header-edit-btn" onclick="startEditName()" id="editBtn">
+          <span class="material-symbols-outlined">edit</span>
+        </div>
       </div>
-      <div>
-        <div class="header-title">龙龙</div>
-        <div class="header-sub" id="hdrSub">Cloud Dragon</div>
-      </div>
+      <div class="header-sub" id="hdrSub">Cloud Crystal</div>
     </div>
-    <!-- Game HUD nav cluster -->
+
+    <!-- Game HUD nav cluster (horizontal) -->
     <div class="header-nav">
       <div class="nav-btn" id="navInfo" onclick="toggleSheet('info')" title="状态">
         <span class="material-symbols-outlined">mood</span>
@@ -1107,6 +1136,7 @@ const S = {
   valence:0.6, energy:0.7, openness:0.5,
   episodes:[], history:[],
   apiKey:'', baseUrl:'', model:'gpt-4o-mini',
+  petName:'晶晶云',
 };
 
 function load() {
@@ -1461,7 +1491,7 @@ function updateUI(){
   document.getElementById('stageName').style.color=si.color;
   document.getElementById('stageFill').style.width=pct+'%';
   document.getElementById('stageInt').textContent=S.intimacy;
-  document.getElementById('hdrSub').textContent=`${si.name} · Cloud Dragon`;
+  document.getElementById('hdrSub').textContent=`${si.name} · Cloud Crystal`;
 
   setMeter('mv','mvv',S.valence);
   setMeter('me','mev',S.energy);
@@ -1539,8 +1569,58 @@ function saveCfg(){
 // ══════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+//  PET NAME EDIT
+// ══════════════════════════════════════════════
+function startEditName(){
+  const display = document.getElementById('petNameDisplay');
+  const editBtn = document.getElementById('editBtn');
+  const current = display.textContent;
+  // Replace display with input
+  const inp = document.createElement('input');
+  inp.className = 'header-name-input';
+  inp.value = current;
+  inp.maxLength = 10;
+  display.replaceWith(inp);
+  editBtn.innerHTML = '<span class="material-symbols-outlined">check</span>';
+  editBtn.onclick = () => commitName(inp);
+  inp.focus();
+  inp.select();
+  inp.addEventListener('keydown', e => {
+    if(e.key==='Enter') commitName(inp);
+    if(e.key==='Escape') cancelName(current);
+  });
+}
+
+function commitName(inp){
+  const val = inp.value.trim() || '晶晶云';
+  S.petName = val;
+  save();
+  restoreNameDisplay(val);
+}
+
+function cancelName(original){
+  restoreNameDisplay(original);
+}
+
+function restoreNameDisplay(name){
+  const inp = document.querySelector('.header-name-input');
+  if(!inp) return;
+  const div = document.createElement('div');
+  div.className = 'header-title';
+  div.id = 'petNameDisplay';
+  div.textContent = name;
+  inp.replaceWith(div);
+  const editBtn = document.getElementById('editBtn');
+  editBtn.innerHTML = '<span class="material-symbols-outlined">edit</span>';
+  editBtn.onclick = startEditName;
+}
+
 function init(){
   load(); updateUI();
+  // Restore pet name
+  const nameEl = document.getElementById('petNameDisplay');
+  if(nameEl && S.petName) nameEl.textContent = S.petName;
   const proact=checkProactive();
   if(proact&&S.msgs>0){
     setTimeout(()=>{addMsg('pet',proact);showBubble(proact);beastAnim('poked');},1000);
