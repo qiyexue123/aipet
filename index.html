@@ -118,19 +118,55 @@ html, body {
   margin-top: 1px;
 }
 
-.header-menu {
-  width: 40px; height: 40px;
-  border-radius: 50%;
+/* ═══ RIGHT NAV CLUSTER (game HUD style) ═══════ */
+.header-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.nav-btn {
+  width: 42px; height: 42px;
+  border-radius: 14px;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform 0.18s, box-shadow 0.18s;
+  position: relative;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  background: rgba(255,255,255,0.6);
+  border: 1px solid rgba(255,255,255,0.75);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
-.header-menu:active { transform: scale(0.92); }
-.header-menu .material-symbols-outlined {
+.nav-btn:active { transform: scale(0.88); box-shadow: 0 1px 6px rgba(0,0,0,0.04); }
+.nav-btn .material-symbols-outlined {
   font-size: 20px;
-  color: rgba(90,96,127,0.45);
-  font-variation-settings: 'wght' 200;
+  color: #5A607F;
+  font-variation-settings: 'wght' 400, 'FILL' 0;
+  transition: color 0.15s;
 }
+.nav-btn:active .material-symbols-outlined { color: var(--primary-d); }
+
+/* Active state glow */
+.nav-btn.active {
+  background: rgba(199,210,254,0.5);
+  border-color: rgba(165,180,252,0.5);
+  box-shadow: 0 2px 14px rgba(165,180,252,0.25);
+}
+.nav-btn.active .material-symbols-outlined { color: var(--primary-d); }
+
+/* Badge dot */
+.nav-badge {
+  position: absolute;
+  top: 6px; right: 6px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #F87171;
+  border: 1.5px solid white;
+  display: none;
+}
+.nav-badge.show { display: block; }
 
 /* ═══ PET STAGE ════════════════════════════════ */
 .pet-stage {
@@ -153,18 +189,20 @@ html, body {
   pointer-events: none;
 }
 
+/* ═══ FRAGMENT — clearer text ══════════════════ */
 .fragment {
   position: absolute;
   padding: 4px 12px;
   border-radius: 999px;
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
-  background: rgba(255,255,255,0.45);
-  border: 1px solid rgba(255,255,255,0.5);
-  box-shadow: var(--shadow-sm);
-  color: rgba(90,96,127,0.55);
+  background: rgba(255,255,255,0.65);
+  border: 1px solid rgba(255,255,255,0.7);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  color: rgba(90,96,127,0.75);
   font-size: 10px;
-  letter-spacing: 0.18em;
+  font-weight: 500;
+  letter-spacing: 0.15em;
   white-space: nowrap;
   animation: orbit linear infinite;
   transform-origin: 0 0;
@@ -309,22 +347,31 @@ html, body {
   text-transform: uppercase;
 }
 
-/* Stage + intimacy pill */
+/* Status row - clearer */
+.status-text {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(90,96,127,0.65);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* Stage pill - clearer */
 .stage-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 5px 12px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.6);
-  border: 1px solid rgba(255,255,255,0.8);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  background: rgba(255,255,255,0.75);
+  border: 1px solid rgba(165,180,252,0.3);
+  box-shadow: 0 2px 12px rgba(165,180,252,0.12);
   margin-top: 8px;
   z-index: 5;
 }
 .stage-name {
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--primary-d);
   letter-spacing: 0.05em;
 }
@@ -342,8 +389,9 @@ html, body {
 }
 .stage-intimacy {
   font-size: 10px;
-  color: var(--text-mute);
+  color: rgba(90,96,127,0.6);
   letter-spacing: 0.05em;
+  font-weight: 500;
 }
 
 /* ═══ CHAT AREA ════════════════════════════════ */
@@ -460,8 +508,8 @@ html, body {
 /* ═══ INPUT AREA ═══════════════════════════════ */
 .input-area {
   flex-shrink: 0;
-  padding: 8px 20px;
-  padding-bottom: calc(8px + var(--safe-bottom));
+  padding: 4px 20px;
+  padding-bottom: calc(16px + var(--safe-bottom));
   z-index: 20;
 }
 
@@ -572,48 +620,6 @@ html, body {
 .send-btn .material-symbols-outlined {
   font-size: 17px;
   font-variation-settings: 'wght' 300, 'FILL' 1;
-}
-
-/* Bottom toolbar */
-.toolbar {
-  display: flex;
-  justify-content: space-around;
-  padding: 10px 16px 4px;
-}
-
-.tool-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-}
-
-.tool-icon {
-  width: 44px; height: 44px;
-  border-radius: 18px;
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  background: rgba(255,255,255,0.45);
-  border: 1px solid rgba(255,255,255,0.65);
-  box-shadow: var(--shadow-sm);
-  display: flex; align-items: center; justify-content: center;
-  transition: transform 0.2s, background 0.2s;
-}
-.tool-icon:active { transform: scale(0.88); background: rgba(199,210,254,0.3); }
-.tool-icon .material-symbols-outlined {
-  font-size: 20px;
-  color: rgba(90,96,127,0.5);
-  font-variation-settings: 'wght' 200, 'FILL' 0;
-  transition: color 0.2s;
-}
-.tool-btn:active .tool-icon .material-symbols-outlined { color: var(--primary-d); }
-
-.tool-label {
-  font-size: 10px;
-  color: var(--text-mute);
-  letter-spacing: 0.12em;
-  font-weight: 500;
 }
 
 /* ═══ BOTTOM SHEET ══════════════════════════════ */
@@ -808,8 +814,18 @@ html, body {
         <div class="header-sub" id="hdrSub">Cloud Dragon</div>
       </div>
     </div>
-    <div class="header-menu glass" onclick="openSheet('cfg')">
-      <span class="material-symbols-outlined">menu</span>
+    <!-- Game HUD nav cluster -->
+    <div class="header-nav">
+      <div class="nav-btn" id="navInfo" onclick="toggleSheet('info')" title="状态">
+        <span class="material-symbols-outlined">mood</span>
+      </div>
+      <div class="nav-btn" id="navMem" onclick="toggleSheet('memory')" title="记忆">
+        <span class="material-symbols-outlined">history_edu</span>
+        <div class="nav-badge" id="memBadge"></div>
+      </div>
+      <div class="nav-btn" id="navCfg" onclick="toggleSheet('cfg')" title="设置">
+        <span class="material-symbols-outlined">settings</span>
+      </div>
     </div>
   </header>
 
@@ -1007,27 +1023,8 @@ html, body {
       </div>
     </div>
 
-    <div class="toolbar">
-      <div class="tool-btn" onclick="openSheet('info')">
-        <div class="tool-icon">
-          <span class="material-symbols-outlined">temp_preferences_custom</span>
-        </div>
-        <span class="tool-label">触碰</span>
-      </div>
-      <div class="tool-btn" onclick="openSheet('memory')">
-        <div class="tool-icon">
-          <span class="material-symbols-outlined">sound_detection_dog_barking</span>
-        </div>
-        <span class="tool-label">记忆</span>
-      </div>
-      <div class="tool-btn" onclick="openSheet('cfg')">
-        <div class="tool-icon">
-          <span class="material-symbols-outlined">spa</span>
-        </div>
-        <span class="tool-label">陪伴</span>
-      </div>
-    </div>
   </div>
+
 
 </div>
 
@@ -1470,7 +1467,10 @@ function updateUI(){
   setMeter('me','mev',S.energy);
   setMeter('mo','mov',S.openness);
 
-  // Memory
+  // Memory badge
+  const badge=document.getElementById('memBadge');
+  if(S.episodes.length>0)badge.classList.add('show');
+  else badge.classList.remove('show');
   const ml=document.getElementById('memList');
   const eps=S.episodes.slice().reverse().slice(0,7);
   if(!eps.length){ml.innerHTML='<div class="empty-tip">聊聊吧，龙龙会偷偷记住 ✦</div>';}
@@ -1491,7 +1491,15 @@ function setMeter(fid,vid,val){
 // ══════════════════════════════════════════════
 //  SHEET
 // ══════════════════════════════════════════════
+let _sheetType = null;
+
+function toggleSheet(type){
+  if(_sheetType===type){closeSheet();return;}
+  openSheet(type);
+}
+
 function openSheet(type){
+  _sheetType=type;
   ['sheetInfo','sheetMemory','sheetCfg'].forEach(id=>document.getElementById(id).style.display='none');
   const map={info:'sheetInfo',memory:'sheetMemory',cfg:'sheetCfg'};
   document.getElementById(map[type]).style.display='';
@@ -1500,14 +1508,22 @@ function openSheet(type){
     document.getElementById('cfgKey').value=S.apiKey;
     document.getElementById('cfgModel').value=S.model;
   }
+  // Nav active state
+  const navMap={info:'navInfo',memory:'navMem',cfg:'navCfg'};
+  ['navInfo','navMem','navCfg'].forEach(id=>{
+    document.getElementById(id).classList.remove('active');
+  });
+  document.getElementById(navMap[type]).classList.add('active');
   updateUI();
   document.getElementById('overlay').classList.add('open');
   document.getElementById('sheet').classList.add('open');
 }
 
 function closeSheet(){
+  _sheetType=null;
   document.getElementById('overlay').classList.remove('open');
   document.getElementById('sheet').classList.remove('open');
+  ['navInfo','navMem','navCfg'].forEach(id=>document.getElementById(id).classList.remove('active'));
 }
 
 function saveCfg(){
